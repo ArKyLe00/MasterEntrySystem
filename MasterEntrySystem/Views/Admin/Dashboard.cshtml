@@ -1,0 +1,167 @@
+@using MasterEntrySystem.Models
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var workers = ViewBag.Workers as List<AppUser>;
+    var taskAssignments = ViewBag.TaskAssignments as List<TaskAssignment>;
+}
+
+<div class="dashboard-container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="dashboard-title">Admin Dashboard</h1>
+        <button class="btn btn-primary premium-btn" data-bs-toggle="modal" data-bs-target="#assignTaskModal">
+            <i class="bi bi-plus-circle"></i> Assign New Task
+        </button>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card premium-card shadow-sm mb-5">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <h5 class="mb-0">Current Task Assignments</h5>
+        </div>
+        <div class="card-body">
+            @if (taskAssignments != null && taskAssignments.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle custom-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Worker</th>
+                                <th>Task Name</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var assignment in taskAssignments)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-3">
+                                                @(assignment.Worker?.Name.Substring(0, 1).ToUpper() ?? "U")
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">@assignment.Worker?.Name</div>
+                                                <div class="text-muted small">@assignment.Worker?.Email</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-primary rounded-pill px-3 py-2 task-badge">@assignment.TaskName</span></td>
+                                    <td>@assignment.StartDate.ToShortDateString()</td>
+                                    <td>@assignment.EndDate.ToShortDateString()</td>
+                                    <td>
+                                        @if (assignment.EndDate < DateTime.Now)
+                                        {
+                                            <span class="badge bg-secondary">Completed</span>
+                                        }
+                                        else if (assignment.StartDate > DateTime.Now)
+                                        {
+                                            <span class="badge bg-warning text-dark">Upcoming</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">In Progress</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-clipboard-x" style="font-size: 3rem;"></i>
+                    <p class="mt-3">No tasks have been assigned yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Assign Task Modal -->
+<div class="modal fade" id="assignTaskModal" tabindex="-1" aria-labelledby="assignTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content premium-modal">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="assignTaskModalLabel">Assign Task to Worker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AssignTask" asp-controller="Admin" method="post">
+                <div class="modal-body pt-3">
+                    <div class="mb-3">
+                        <label for="workerId" class="form-label">Select Worker</label>
+                        <select class="form-select premium-input" id="workerId" name="workerId" required>
+                            <option value="">Choose a worker...</option>
+                            @if (workers != null)
+                            {
+                                @foreach (var worker in workers)
+                                {
+                                    <option value="@worker.Id">@worker.Name (@worker.Email)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskName" class="form-label">Task Name</label>
+                        <input type="text" class="form-control premium-input" id="taskName" name="taskName" placeholder="e.g. Task 1, Task 2" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control premium-input" id="startDate" name="startDate" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" class="form-control premium-input" id="endDate" name="endDate" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary premium-btn px-4">Assign Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-set the start and end dates to next week as a default
+        document.addEventListener('DOMContentLoaded', function () {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            
+            const today = new Date();
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7); // Next Monday
+            
+            if (nextMonday.getTime() < today.getTime()) {
+                nextMonday.setDate(today.getDate() + 1); // fallback
+            }
+
+            const nextSunday = new Date(nextMonday);
+            nextSunday.setDate(nextMonday.getDate() + 6); // Next Sunday
+
+            startDateInput.value = nextMonday.toISOString().split('T')[0];
+            endDateInput.value = nextSunday.toISOString().split('T')[0];
+        });
+    </script>
+}
