@@ -71,5 +71,93 @@ namespace MasterEntrySystem.Controllers
             TempData["SuccessMessage"] = "Task assigned successfully.";
             return RedirectToAction(nameof(Dashboard));
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddWorker(string name, string email, string password, string department, string designation, string status)
+        {
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                TempData["ErrorMessage"] = "Name, email, and password are required.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            // Check for duplicate email
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (existingUser != null)
+            {
+                TempData["ErrorMessage"] = "A user with this email already exists.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            var worker = new AppUser
+            {
+                Name = name,
+                Email = email,
+                PasswordHash = password, // In a real app, hash this!
+                Role = "Worker",
+                Department = department ?? string.Empty,
+                Designation = designation ?? string.Empty,
+                Status = status ?? "Active"
+            };
+
+            _context.Users.Add(worker);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Worker \"{name}\" added successfully.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditWorker(int id, string name, string email, string department, string designation, string status)
+        {
+            var worker = await _context.Users.FindAsync(id);
+            if (worker == null || worker.Role != "Worker")
+            {
+                TempData["ErrorMessage"] = "Worker not found.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email))
+            {
+                TempData["ErrorMessage"] = "Name and email are required.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            // Check for duplicate email (excluding current worker)
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Id != id);
+            if (existingUser != null)
+            {
+                TempData["ErrorMessage"] = "Another user with this email already exists.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            worker.Name = name;
+            worker.Email = email;
+            worker.Department = department ?? string.Empty;
+            worker.Designation = designation ?? string.Empty;
+            worker.Status = status ?? "Active";
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Worker \"{name}\" updated successfully.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteWorker(int id)
+        {
+            var worker = await _context.Users.FindAsync(id);
+            if (worker == null || worker.Role != "Worker")
+            {
+                TempData["ErrorMessage"] = "Worker not found.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            _context.Users.Remove(worker);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Worker \"{worker.Name}\" deleted successfully.";
+            return RedirectToAction(nameof(Dashboard));
+        }
     }
 }

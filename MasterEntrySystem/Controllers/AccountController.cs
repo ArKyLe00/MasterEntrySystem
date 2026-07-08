@@ -27,40 +27,49 @@ namespace MasterEntrySystem.Controllers
                 {
                     return RedirectToAction("Dashboard", "Admin");
                 }
+                return RedirectToAction("Index", "Home");
             }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password, string role)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password);
 
-            if (user != null)
+            if (user == null)
             {
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Name),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role)
-                };
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-
-                if (user.Role == "Admin")
-                {
-                    return RedirectToAction("Dashboard", "Admin");
-                }
-                
-                // For a worker, they might not have a dashboard yet
-                return RedirectToAction("Index", "Home");
+                ViewBag.ErrorMessage = "Invalid email or password.";
+                return View();
             }
 
-            ViewBag.ErrorMessage = "Invalid email or password.";
-            return View();
+            // Validate user role matches selected login type
+            var expectedRole = role == "User" ? "Worker" : "Admin";
+            if (user.Role != expectedRole)
+            {
+                ViewBag.ErrorMessage = $"This account is not registered as {(role == "User" ? "a User" : "an Admin")}. Please select the correct role.";
+                return View();
+            }
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+            if (user.Role == "Admin")
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+            
+            // For a worker, redirect to home
+            return RedirectToAction("Index", "Home");
         }
 
         public async Task<IActionResult> Logout()

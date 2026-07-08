@@ -37,21 +37,30 @@ using (var scope = app.Services.CreateScope())
                 Name = "Admin User",
                 Email = "admin@example.com",
                 PasswordHash = "admin123", // In a real app, hash this!
-                Role = "Admin"
+                Role = "Admin",
+                Department = "Management",
+                Designation = "System Administrator",
+                Status = "Active"
             });
             context.Users.Add(new AppUser
             {
                 Name = "Worker One",
                 Email = "worker1@example.com",
                 PasswordHash = "worker123",
-                Role = "Worker"
+                Role = "Worker",
+                Department = "Engineering",
+                Designation = "Developer",
+                Status = "Active"
             });
             context.Users.Add(new AppUser
             {
                 Name = "Worker Two",
                 Email = "worker2@example.com",
                 PasswordHash = "worker123",
-                Role = "Worker"
+                Role = "Worker",
+                Department = "Design",
+                Designation = "UI Designer",
+                Status = "Active"
             });
             context.SaveChanges();
         }

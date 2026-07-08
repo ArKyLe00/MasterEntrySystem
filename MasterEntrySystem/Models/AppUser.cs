@@ -21,5 +21,15 @@ namespace MasterEntrySystem.Models
         [Required]
         [MaxLength(20)]
         public string Role { get; set; } = "Worker"; // "Admin" or "Worker"
+
+        [MaxLength(100)]
+        public string Department { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string Designation { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(20)]
+        public string Status { get; set; } = "Active"; // "Active", "Inactive", "Disabled"
     }
 }
