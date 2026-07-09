@@ -33,21 +33,13 @@ namespace MasterEntrySystem.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password, string role)
+        public async Task<IActionResult> Login(string email, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password);
 
             if (user == null)
             {
                 ViewBag.ErrorMessage = "Invalid email or password.";
-                return View();
-            }
-
-            // Validate user role matches selected login type
-            var expectedRole = role == "User" ? "Worker" : "Admin";
-            if (user.Role != expectedRole)
-            {
-                ViewBag.ErrorMessage = $"This account is not registered as {(role == "User" ? "a User" : "an Admin")}. Please select the correct role.";
                 return View();
             }
 
@@ -67,9 +59,9 @@ namespace MasterEntrySystem.Controllers
             {
                 return RedirectToAction("Dashboard", "Admin");
             }
-            
-            // For a worker, redirect to home
-            return RedirectToAction("Index", "Home");
+
+            // User/Worker -> Worker dashboard
+            return RedirectToAction("Dashboard", "WorkerDashboard");
         }
 
         public async Task<IActionResult> Logout()

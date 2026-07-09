@@ -1,0 +1,6 @@
+- [ ] Add TaskSubmission model (comment + draft/submit fields)
+- [ ] Add WorkerDashboardController (GET Dashboard + POST SaveDraft/Submit)
+- [ ] Add Worker Dashboard view with week dropdown + task list + comment textarea + buttons
+- [ ] Update shared layout navigation to include Worker Dashboard link
+- [ ] Add EF Core migration and update database
+- [ ] Run app and verify worker can save draft + submit and data persists

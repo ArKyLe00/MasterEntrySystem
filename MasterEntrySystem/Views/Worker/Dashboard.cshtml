@@ -1,0 +1,143 @@
+@using MasterEntrySystem.Models
+@{
+    ViewData["Title"] = "Worker Dashboard";
+
+    var weeks = ViewBag.Weeks as List<dynamic>;
+    DateTime? selectedWeekStart = ViewBag.SelectedWeekStart as DateTime?;
+    var tasks = ViewBag.Tasks as List<TaskAssignment>;
+    var submissionByAssignmentId = ViewBag.SubmissionByAssignmentId as Dictionary<int, TaskSubmission>;
+}
+
+<div class="dashboard-container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="dashboard-title">Your Worker Dashboard</h1>
+    </div>
+
+    <div class="card premium-card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-controller="WorkerDashboard" asp-action="Dashboard">
+                <div class="row align-items-end g-3">
+                    <div class="col-md-8">
+                        <label class="form-label"><i class="bi bi-calendar-week me-1"></i>Select Week</label>
+                        <select class="form-select premium-input" name="weekStart" onchange="this.form.submit()">
+                            @if (weeks != null && weeks.Any())
+                            {
+                                foreach (var w in weeks)
+                                {
+                                    var ws = (DateTime)w.WeekStart;
+                                    var isSelected = selectedWeekStart.HasValue && ws == selectedWeekStart.Value;
+
+                                    <option value="@ws.ToString("yyyy-MM-dd")" selected="@(isSelected ? "selected" : null)">
+                                        @w.DisplayText
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-primary premium-btn" type="submit">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Load Week
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (tasks != null && tasks.Any())
+    {
+        <div class="card premium-card shadow-sm">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h5 class="mb-0"><i class="bi bi-card-checklist me-2 text-primary"></i>Tasks for selected week</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="list-group">
+                    @foreach (var task in tasks)
+                    {
+                        var existing = submissionByAssignmentId != null && submissionByAssignmentId.ContainsKey(task.Id)
+                            ? submissionByAssignmentId[task.Id]
+                            : null;
+
+                        var savedComment = existing?.CommentText ?? string.Empty;
+                        var isDraft = existing?.IsDraft ?? true;
+
+                        <div class="list-group-item mb-3 border rounded-3 p-3">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div class="me-2">
+                                    <div class="fw-bold text-primary mb-1">@task.TaskName</div>
+                                    <div class="text-muted small">
+                                        Start: @task.StartDate.ToShortDateString() |
+                                        End: @task.EndDate.ToShortDateString()
+                                    </div>
+                                    @if (existing != null)
+                                    {
+                                        <div class="mt-2">
+                                            @if (existing.IsDraft)
+                                            {
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-pencil-square me-1"></i>Draft</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success"><i class="bi bi-check2-circle me-1"></i>Submitted</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="text-end">
+                                    @if (existing != null && !existing.IsDraft)
+                                    {
+                                        <div class="text-muted small">Submitted</div>
+                                    }
+                                </div>
+                            </div>
+
+                            <form method="post" asp-controller="WorkerDashboard" asp-action="SaveDraft" class="mt-3">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="taskAssignmentId" value="@task.Id" />
+                                <input type="hidden" name="weekStart" value="@(((DateTime)selectedWeekStart).ToString("yyyy-MM-dd"))" />
+
+                                <label class="form-label mb-1">Comments</label>
+                                <textarea class="form-control premium-input" name="commentText" rows="3">@savedComment</textarea>
+
+                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="bi bi-save me-1"></i>Save Draft
+                                    </button>
+                                </div>
+                            </form>
+
+                            <form method="post" asp-controller="WorkerDashboard" asp-action="Submit" class="mt-2">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="taskAssignmentId" value="@task.Id" />
+                                <input type="hidden" name="weekStart" value="@(((DateTime)selectedWeekStart).ToString("yyyy-MM-dd"))" />
+
+                                <input type="hidden" name="commentText" value="@savedComment" />
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-send-check me-1"></i>Submit
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+                </div>
+
+                <div class="text-muted small mt-3">
+                    Note: Submitting will mark the task for this week as completed. You can still edit drafts (if not submitted yet).
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-clipboard-x" style="font-size: 3rem;"></i>
+            <p class="mt-3">No tasks found for this week.</p>
+        </div>
+    }
+</div>

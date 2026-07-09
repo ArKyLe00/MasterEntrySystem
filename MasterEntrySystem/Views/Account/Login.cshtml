@@ -5,7 +5,7 @@
 <div class="login-container">
     <div class="login-card">
         <h2 class="login-title">Welcome Back</h2>
-        <p class="login-subtitle">Choose your role and sign in</p>
+        <p class="login-subtitle">Sign in with your email and password</p>
 
         @if (ViewBag.ErrorMessage != null)
         {
@@ -15,37 +15,7 @@
             </div>
         }
 
-        <!-- Role Selection -->
-        <div class="role-selector mb-4">
-            <div class="role-card active" data-role="Admin" id="role-admin">
-                <div class="role-icon admin-icon">
-                    <i class="bi bi-shield-lock-fill"></i>
-                </div>
-                <div class="role-info">
-                    <span class="role-name">Admin</span>
-                    <span class="role-desc">Full system access</span>
-                </div>
-                <div class="role-check">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-            </div>
-            <div class="role-card" data-role="User" id="role-user">
-                <div class="role-icon user-icon">
-                    <i class="bi bi-person-fill"></i>
-                </div>
-                <div class="role-info">
-                    <span class="role-name">User</span>
-                    <span class="role-desc">Task management</span>
-                </div>
-                <div class="role-check">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-            </div>
-        </div>
-
         <form asp-action="Login" asp-controller="Account" method="post">
-            <input type="hidden" name="role" id="selected-role" value="Admin" />
-
             <div class="form-group mb-3">
                 <label for="email" class="form-label">
                     <i class="bi bi-envelope me-1"></i>Email address
@@ -59,31 +29,11 @@
                 <input type="password" class="form-control premium-input" id="password" name="password" required placeholder="••••••••">
             </div>
             <button type="submit" class="btn btn-primary w-100 premium-btn" id="login-btn">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In as <span id="btn-role-text">Admin</span>
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
             </button>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const roleCards = document.querySelectorAll('.role-card');
-            const hiddenRole = document.getElementById('selected-role');
-            const btnRoleText = document.getElementById('btn-role-text');
-
-            roleCards.forEach(card => {
-                card.addEventListener('click', function () {
-                    // Remove active class from all cards
-                    roleCards.forEach(c => c.classList.remove('active'));
-                    // Add active class to clicked card
-                    this.classList.add('active');
-                    // Update hidden input
-                    const role = this.getAttribute('data-role');
-                    hiddenRole.value = role;
-                    btnRoleText.textContent = role;
-                });
-            });
-        });
-    </script>
 }
