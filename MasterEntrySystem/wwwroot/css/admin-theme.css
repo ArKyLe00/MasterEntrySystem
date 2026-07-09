@@ -30,7 +30,7 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 450px;
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
 }
 
@@ -225,6 +225,20 @@ body {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
+/* Fix modal footer button positioning (e.g., Assign Task modal) */
+.premium-modal .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.premium-modal .modal-footer .btn {
+    margin: 0;
+}
+
 /* ===================== MANAGE WORKERS ===================== */
 
 /* Success Button Variant */
@@ -359,4 +373,3 @@ body {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
